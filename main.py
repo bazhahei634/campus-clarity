@@ -21,21 +21,26 @@ class NoticeRequest(BaseModel):
 
 @app.post("/api/translate")
 async def translate_notice(data: NoticeRequest):
-    # ⚠️ 换成你真实的 DeepSeek API Key
-    API_KEY = "sk-408ca3f811c749238cf8aa08b0a8f040"
+    # ⚠️⚠️⚠️ 在这里填入你真实的 DeepSeek API Key ⚠️⚠️⚠️
+import os
+API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
     prompt = f"""你是校园通知翻译器，用户身份是：{data.role}。
 请解析下面的通知，严格输出 JSON 格式（不要任何其他解释文字）。
-重要规则：如果通知里没有明确提到某类信息，必须如实填"未明确"，绝对不要自己编造或猜测。
+
+判断规则：
+1. 只有当通知里**明确写了**"做什么、截止时间、交给谁、准备什么材料"时，才填写对应字段。
+2. 如果没有写明，对应字段填 **空字符串 ""**，不要填"未明确"或"无"，也不要自己编造。
+3. 特别注意：截止时间如果写的是"近期""下周"等模糊词，填成"近期（未明确具体日期）"。
 
 JSON 格式：
 {{
-  "task": "要做的具体动作，没有则填'未明确'",
-  "deadline": "截止时间，没有则填'未明确'",
-  "submit_to": "交给谁，没有则填'未明确'",
+  "task": "要做的具体动作，没有则填空字符串",
+  "deadline": "截止时间（如'10月20日 17:00'），没有则填空字符串",
+  "submit_to": "交给谁，没有则填空字符串",
   "materials": ["需要准备的材料，没有则填空数组 []"],
-  "subtext": "潜台词，没有则填'无'",
-  "personal_action": "针对该身份的行动建议，没有则填'无'"
+  "subtext": "潜台词，没有则填空字符串",
+  "personal_action": "针对该身份的行动建议，没有则填空字符串"
 }}
 通知原文：
 {data.text}
